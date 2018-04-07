@@ -22,7 +22,11 @@ class RegisterController extends Controller
     |
     */
 
-    use RegistersUsers;
+    use RegistersUsers {
+        // change the name of the name of the trait's method in this class
+        // so it does not clash with our own register method
+        register as registration;
+    }
 
     /**
      * Where to redirect users after registration.
@@ -68,6 +72,8 @@ class RegisterController extends Controller
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => bcrypt($data['password']),
+            'google2fa_secret' => $data['google2fa_secret'],
+
         ]);
     }
 
@@ -101,4 +107,13 @@ class RegisterController extends Controller
         return view('google2fa.register', ['QR_Image' => $QR_Image, 'secret' => $registration_data['google2fa_secret']]);
     }
 
+
+    public function completeRegistration(Request $request)
+    {
+        // add the session data back to the request input
+        $request->merge(session('registration_data'));
+
+        // Call the default laravel authentication
+        return $this->registration($request);
+    }
 }
